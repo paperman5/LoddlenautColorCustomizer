@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net471</TargetFramework>
+    <AssemblyName>ColorCustomizer</AssemblyName>
+    <Product>Color Customizer</Product>
+    <Version>0.5.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <RestoreAdditionalProjectSources>
+      https://api.nuget.org/v3/index.json;
+      https://nuget.bepinex.dev/v3/index.json;
+      https://nuget.samboy.dev/v3/index.json
+    </RestoreAdditionalProjectSources>
+    <RootNamespace>ColorCustomizer</RootNamespace>
+    <Title>Color Customizer</Title>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.Core" Version="5.*" />
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
+    <PackageReference Include="UnityEngine.Modules" Version="2021.3" IncludeAssets="compile" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>lib\Assembly-CSharp-publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="Cinemachine">
+      <HintPath>lib\Cinemachine-publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="DOTween">
+      <HintPath>lib\DOTween-publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="FMODUnity">
+      <HintPath>lib\FMODUnity-publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="I2.Localization.Runtime">
+      <HintPath>lib\I2.Localization.Runtime-publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="iGameAudio.FMODWrapper">
+      <HintPath>lib\iGameAudio.FMODWrapper-publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="Rewired_Core">
+      <HintPath>..\LoddlenautUnPixelizer\lib\Rewired_Core-publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>lib\Unity.TextMeshPro-publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>lib\UnityEngine.UI-publicized.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="mkdir &quot;D:\SteamLibrary\steamapps\common\Loddlenaut\BepInEx\scripts&quot;&#xD;&#xA;copy /Y &quot;$(TargetPath)&quot; &quot;D:\SteamLibrary\steamapps\common\Loddlenaut\BepInEx\scripts&quot;&#xD;&#xA;copy /Y &quot;$(OutDir)\$(TargetName).pdb&quot; &quot;D:\SteamLibrary\steamapps\common\Loddlenaut\BepInEx\scripts&quot;" />
+  </Target>
+</Project>
