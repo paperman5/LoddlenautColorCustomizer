@@ -21,6 +21,23 @@ namespace ColorCustomizer
         public static GameObject uiRightArrowButtonPrototype = null;
         public static GameObject colorMenuEntryPrototype = null;
 
+        internal static Material playerSuitMaterial = null;             // Set by PlayerModelControllerPatches
+        internal static Material playerDepthSuitMaterial = null;        
+        internal static Material playerAntennaInnerMaterial = null;     
+        internal static Material playerAntennaOuterMaterial = null;     
+        internal static Material playerHelmetWindowMaterial = null;     
+        internal static Material playerHelmetLightsMaterial = null;     
+        internal static Material playerJetpackMaterial = null;          // Set by PlayerMovementControllerPatches
+        internal static Material jetpackUpArrowMaterial = null;         
+        internal static Material jetpackDownArrowMaterial = null;       
+        internal static Material jetpackTubeMaterial = null;            
+        internal static Material jetpackBoostMeterMaterial = null;      
+        internal static Material jetpackOxygenMeterMaterial = null;     
+        internal static Material jetpackPropellerMaterial = null;       
+        internal static Material jetpackPropellerBoostRingMaterial = null;
+        internal static Material jetpackOxygenUpgradeMaterial = null;
+        internal static Material jetpackOxygenUpgradeSlotMaterial = null;
+
         #region Player Data
 
         // Used to look up the proper texture to modify
@@ -30,6 +47,9 @@ namespace ColorCustomizer
             DEPTH_SUIT,
             JETPACK,
             PROPELLER,
+            OXYGEN_METER,
+            OXYGEN_UPGRADE,
+            OXYGEN_UPGRADE_SLOT,
             BUBBLE_GUN,
             SCRAP_VAC,
             PUDDLE_SCRUBBER,
@@ -44,14 +64,14 @@ namespace ColorCustomizer
             HELMET_LIGHTS,
             JETPACK_ARROWS,
             JETPACK_BOOST,
-            JETPACK_OXYGEN,
-            JETPACK_OFF,
-            JETPACK_TUBE
+            JETPACK_OXYGEN_UPGRADE,
+            JETPACK_TUBE,
         }
 
         // Texture regions for modifying each texture-based color
         public static Dictionary<string, RectInt> playerTextureCoords = new Dictionary<string, RectInt>
         {
+            // Standard suit texture
             { PlayerKeyNames.helmetMain,        new RectInt(0,  0,  32, 32) },
             { PlayerKeyNames.helmetWindowRing,  new RectInt(32, 0,  32, 32) },
             { PlayerKeyNames.suitCollar,        new RectInt(64, 0,  32, 32) },
@@ -64,6 +84,7 @@ namespace ColorCustomizer
             { PlayerKeyNames.suitPocketBottom,  new RectInt(64, 64, 32, 32) },
             { PlayerKeyNames.suitPocketTop,     new RectInt(96, 64, 32, 32) },
 
+            // Depth suit texture
             { PlayerKeyNames.helmetDepthMain,       new RectInt(0,  0,  32, 32) },
             { PlayerKeyNames.helmetDepthWindowRing, new RectInt(32, 0,  32, 32) },
             { PlayerKeyNames.suitDepthCollar,       new RectInt(64, 0,  32, 32) },
@@ -76,6 +97,7 @@ namespace ColorCustomizer
             { PlayerKeyNames.suitDepthPocketBottom, new RectInt(64, 64, 32, 32) },
             { PlayerKeyNames.suitDepthPocketTop,    new RectInt(96, 64, 32, 32) },
 
+            // Jetpack texture
             { PlayerKeyNames.jetpackTop,                        new RectInt(0,   0,   64,  64 ) },
             { PlayerKeyNames.jetpackTopBooster1,                new RectInt(64,  0,   64,  64 ) },
             { PlayerKeyNames.jetpackTopBooster2,                new RectInt(128, 0,   64,  64 ) },
@@ -87,7 +109,15 @@ namespace ColorCustomizer
             { PlayerKeyNames.jetpackPropellerConnectorInside,   new RectInt(64,  128, 64,  64 ) },
             { PlayerKeyNames.jetpackPropellerBlades,            new RectInt(0,   0,   128, 128) },
             { PlayerKeyNames.jetpackPropellerShaft,             new RectInt(128, 0,   128, 128) },
-            { PlayerKeyNames.jetpackPropellerHub,               new RectInt(0  , 128, 128, 128) },
+            { PlayerKeyNames.jetpackPropellerHub,               new RectInt(0,   128, 128, 128) },
+
+            // Oxygen upgrade texture
+            { PlayerKeyNames.jetpackOxygenUpgradeLight,         new RectInt(0,   0,   64,  64) },
+            { PlayerKeyNames.jetpackOxygenUpgradeCap,           new RectInt(64,  0,   64,  64) },
+
+            // Oxygen capsule slot texture
+            { PlayerKeyNames.jetpackOxygenUpgradeRing1,         new RectInt(0,   0,  128, 128) },
+            { PlayerKeyNames.jetpackOxygenUpgradeRing2,         new RectInt(128, 0,  128, 128) },
         };
 
         // For easy color changing, just call `playerColorFunctions[key](colorToSet)`
@@ -129,16 +159,26 @@ namespace ColorCustomizer
             { PlayerKeyNames.jetpackPropellerBlades,            color => SetPlayerTextureColor(PlayerKeyNames.jetpackPropellerBlades,           color) },
             { PlayerKeyNames.jetpackPropellerShaft,             color => SetPlayerTextureColor(PlayerKeyNames.jetpackPropellerShaft,            color) },
             { PlayerKeyNames.jetpackPropellerHub,               color => SetPlayerTextureColor(PlayerKeyNames.jetpackPropellerHub,              color) },
+            { PlayerKeyNames.jetpackOxygenMeter,                color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenMeter,               color) },
+            { PlayerKeyNames.jetpackOxygenMeterLow,             color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenMeterLow,            color) },
+            { PlayerKeyNames.jetpackOxygenMeterOff,             color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenMeterOff,            color) },
+            { PlayerKeyNames.jetpackOxygenUpgradeLight,         color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenUpgradeLight,        color) },
+            { PlayerKeyNames.jetpackOxygenUpgradeCap,           color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenUpgradeCap,          color) },
+            { PlayerKeyNames.jetpackOxygenUpgradeRing1,         color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenUpgradeRing1,        color) },
+            { PlayerKeyNames.jetpackOxygenUpgradeRing2,         color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenUpgradeRing2,        color) },
 
-            { PlayerKeyNames.suitAntennaOrbInner,   color => SetPlayerShaderParamColor(PlayerKeyNames.suitAntennaOrbInner,  color) },
-            { PlayerKeyNames.suitAntennaOrbOuter,   color => SetPlayerShaderParamColor(PlayerKeyNames.suitAntennaOrbOuter,  color) },
-            { PlayerKeyNames.helmetWindow,          color => SetPlayerShaderParamColor(PlayerKeyNames.helmetWindow,         color) },
-            { PlayerKeyNames.helmetCheeks,          color => SetPlayerShaderParamColor(PlayerKeyNames.helmetCheeks,         color) },
-            { PlayerKeyNames.jetpackPipe,           color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackPipe,          color) },
-            { PlayerKeyNames.jetpackArrows,         color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackArrows,        color) },
-            { PlayerKeyNames.jetpackBoostMeter,     color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackBoostMeter,    color) },
-            { PlayerKeyNames.jetpackOxygenMeter,    color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackOxygenMeter,   color) },
-            { PlayerKeyNames.jetpackIndicatorOff,   color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackIndicatorOff,  color) },
+            { PlayerKeyNames.suitAntennaOrbInner,       color => SetPlayerShaderParamColor(PlayerKeyNames.suitAntennaOrbInner,          color) },
+            { PlayerKeyNames.suitAntennaOrbOuter,       color => SetPlayerShaderParamColor(PlayerKeyNames.suitAntennaOrbOuter,          color) },
+            { PlayerKeyNames.helmetWindow,              color => SetPlayerShaderParamColor(PlayerKeyNames.helmetWindow,                 color) },
+            { PlayerKeyNames.helmetCheeks,              color => SetPlayerShaderParamColor(PlayerKeyNames.helmetCheeks,                 color) },
+            { PlayerKeyNames.jetpackPipe,               color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackPipe,                  color) },
+            { PlayerKeyNames.jetpackArrows,             color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackArrows,                color) },
+            { PlayerKeyNames.jetpackArrowsOff,          color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackArrowsOff,             color) },
+            { PlayerKeyNames.jetpackBoostMeter,         color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackBoostMeter,            color) },
+            { PlayerKeyNames.jetpackBoostMeterUpgrade,  color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackBoostMeterUpgrade,     color) },
+            { PlayerKeyNames.jetpackBoostMeterOverdrive,color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackBoostMeterOverdrive,   color) },
+            { PlayerKeyNames.jetpackBoostMeterOff,      color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackBoostMeterOff,         color) },
+            { PlayerKeyNames.jetpackOxygenUpgradeGlow,  color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackOxygenUpgradeGlow,     color) },
         };
 
         public static Dictionary<string, Color> playerColorDefaults = new Dictionary<string, Color>
@@ -167,16 +207,20 @@ namespace ColorCustomizer
             { PlayerKeyNames.suitDepthPocketBottom,  GetColorFromString("942c4a") },
             { PlayerKeyNames.suitDepthPocketTop,     GetColorFromString("aa3357") },
 
-            { PlayerKeyNames.suitAntennaOrbInner,   GetColorFromString("73FFFF") },
+            { PlayerKeyNames.suitAntennaOrbInner,   GetColorFromString("21BFA3") },
             { PlayerKeyNames.suitAntennaOrbOuter,   GetColorFromString("CCF5FF54") },
             { PlayerKeyNames.helmetWindow,          GetColorFromString("4F4E4D") },
             { PlayerKeyNames.helmetCheeks,          GetColorFromString("B18557") },
-            { PlayerKeyNames.jetpackArrows,         GetColorFromString("00BF3A") },
-            { PlayerKeyNames.jetpackBoostMeter,     GetColorFromString("0ABF41") },
-            { PlayerKeyNames.jetpackBoostMeterUpgrade, GetColorFromString("30BF30") },
-            { PlayerKeyNames.jetpackOxygenMeter,    GetColorFromString("FFFFFF") },
-            { PlayerKeyNames.jetpackIndicatorOff,   GetColorFromString("164561") },
-
+            
+            { PlayerKeyNames.jetpackArrows,                     GetColorFromString("00BF3A") },
+            { PlayerKeyNames.jetpackArrowsOff,                  GetColorFromString("164561") },
+            { PlayerKeyNames.jetpackBoostMeter,                 GetColorFromString("0ABF41") },
+            { PlayerKeyNames.jetpackBoostMeterUpgrade,          GetColorFromString("30BF30") },
+            { PlayerKeyNames.jetpackBoostMeterOverdrive,        GetColorFromString("BFBF0A") },
+            { PlayerKeyNames.jetpackBoostMeterOff,              GetColorFromString("164561") },
+            { PlayerKeyNames.jetpackOxygenMeter,                GetColorFromString("70C8FF") },
+            { PlayerKeyNames.jetpackOxygenMeterLow,             GetColorFromString("FF6160") },
+            { PlayerKeyNames.jetpackOxygenMeterOff,             GetColorFromString("9A9A9A") },
             { PlayerKeyNames.jetpackTop,                        GetColorFromString("d1e7e7") },
             { PlayerKeyNames.jetpackTopBooster1,                GetColorFromString("99c7cb") },
             { PlayerKeyNames.jetpackTopBooster2,                GetColorFromString("8fbac0") },
@@ -189,7 +233,12 @@ namespace ColorCustomizer
             { PlayerKeyNames.jetpackPropellerBlades,            GetColorFromString("8ee4e7") },
             { PlayerKeyNames.jetpackPropellerShaft,             GetColorFromString("999a99") },
             { PlayerKeyNames.jetpackPropellerHub,               GetColorFromString("8381e7") },
-            { PlayerKeyNames.jetpackPipe,                       GetColorFromString("CCFFFF80") }
+            { PlayerKeyNames.jetpackPipe,                       GetColorFromString("CCFFFF80") },
+            { PlayerKeyNames.jetpackOxygenUpgradeLight,         GetColorFromString("ffffff") },
+            { PlayerKeyNames.jetpackOxygenUpgradeGlow,          GetColorFromString("2800bf") },
+            { PlayerKeyNames.jetpackOxygenUpgradeCap,           GetColorFromString("b592ff") },
+            { PlayerKeyNames.jetpackOxygenUpgradeRing1,         GetColorFromString("475999") },
+            { PlayerKeyNames.jetpackOxygenUpgradeRing2,         GetColorFromString("39467b") },
         };
 
         public static Dictionary<string, PlayerTextureCategory> playerTextureCategories = new Dictionary<string, PlayerTextureCategory>
@@ -231,19 +280,32 @@ namespace ColorCustomizer
             { PlayerKeyNames.jetpackPropellerBlades,    PlayerTextureCategory.PROPELLER },
             { PlayerKeyNames.jetpackPropellerShaft,     PlayerTextureCategory.PROPELLER },
             { PlayerKeyNames.jetpackPropellerHub,       PlayerTextureCategory.PROPELLER },
+
+            { PlayerKeyNames.jetpackOxygenMeter,    PlayerTextureCategory.OXYGEN_METER },
+            { PlayerKeyNames.jetpackOxygenMeterLow, PlayerTextureCategory.OXYGEN_METER },
+            { PlayerKeyNames.jetpackOxygenMeterOff, PlayerTextureCategory.OXYGEN_METER },
+
+            { PlayerKeyNames.jetpackOxygenUpgradeLight, PlayerTextureCategory.OXYGEN_UPGRADE },
+            { PlayerKeyNames.jetpackOxygenUpgradeCap,   PlayerTextureCategory.OXYGEN_UPGRADE },
+            
+            { PlayerKeyNames.jetpackOxygenUpgradeRing1, PlayerTextureCategory.OXYGEN_UPGRADE_SLOT },
+            { PlayerKeyNames.jetpackOxygenUpgradeRing2, PlayerTextureCategory.OXYGEN_UPGRADE_SLOT },
         };
 
         public static Dictionary<string, PlayerShaderCategory> playerShaderCategories = new Dictionary<string, PlayerShaderCategory>
         {
-            { PlayerKeyNames.suitAntennaOrbInner,   PlayerShaderCategory.ANTENNA_INNER  },
-            { PlayerKeyNames.suitAntennaOrbOuter,   PlayerShaderCategory.ANTENNA_OUTER  },
-            { PlayerKeyNames.helmetWindow,          PlayerShaderCategory.HELMET_WINDOW  },
-            { PlayerKeyNames.helmetCheeks,          PlayerShaderCategory.HELMET_LIGHTS  },
-            { PlayerKeyNames.jetpackPipe,           PlayerShaderCategory.JETPACK_TUBE   },
-            { PlayerKeyNames.jetpackArrows,         PlayerShaderCategory.JETPACK_ARROWS },
-            { PlayerKeyNames.jetpackBoostMeter,     PlayerShaderCategory.JETPACK_BOOST  },
-            { PlayerKeyNames.jetpackOxygenMeter,    PlayerShaderCategory.JETPACK_OXYGEN },
-            { PlayerKeyNames.jetpackIndicatorOff,   PlayerShaderCategory.JETPACK_OFF    },
+            { PlayerKeyNames.suitAntennaOrbInner,       PlayerShaderCategory.ANTENNA_INNER  },
+            { PlayerKeyNames.suitAntennaOrbOuter,       PlayerShaderCategory.ANTENNA_OUTER  },
+            { PlayerKeyNames.helmetWindow,              PlayerShaderCategory.HELMET_WINDOW  },
+            { PlayerKeyNames.helmetCheeks,              PlayerShaderCategory.HELMET_LIGHTS  },
+            { PlayerKeyNames.jetpackPipe,               PlayerShaderCategory.JETPACK_TUBE   },
+            { PlayerKeyNames.jetpackArrows,             PlayerShaderCategory.JETPACK_ARROWS },
+            { PlayerKeyNames.jetpackArrowsOff,          PlayerShaderCategory.JETPACK_ARROWS },
+            { PlayerKeyNames.jetpackBoostMeter,         PlayerShaderCategory.JETPACK_BOOST  },
+            { PlayerKeyNames.jetpackBoostMeterUpgrade,  PlayerShaderCategory.JETPACK_BOOST  },
+            { PlayerKeyNames.jetpackBoostMeterOverdrive,PlayerShaderCategory.JETPACK_BOOST  },
+            { PlayerKeyNames.jetpackBoostMeterOff,      PlayerShaderCategory.JETPACK_BOOST  },
+            { PlayerKeyNames.jetpackOxygenUpgradeGlow,  PlayerShaderCategory.JETPACK_OXYGEN_UPGRADE  },
         };
 
         // Certain player colors use HDR color to create a bloom effect. To set these colors properly we can use a base SDR color
@@ -253,7 +315,9 @@ namespace ColorCustomizer
             { PlayerKeyNames.jetpackArrows, 1.4f },
             { PlayerKeyNames.jetpackBoostMeter, 1.25f },
             { PlayerKeyNames.jetpackBoostMeterUpgrade, 1.8f },
-
+            { PlayerKeyNames.jetpackBoostMeterOverdrive, 2.407534f },
+            { PlayerKeyNames.jetpackOxygenUpgradeGlow, 1.634228f },
+            { PlayerKeyNames.suitAntennaOrbInner, 1.8f },
         };
 
         #endregion
@@ -345,36 +409,45 @@ namespace ColorCustomizer
             {
                 return;
             }
+            float colorIntensity = playerLightIntensities.ContainsKey(playerKeyName) ? playerLightIntensities[playerKeyName] : 0f;
+            color *= Mathf.Pow(2, colorIntensity);
             switch (playerKeyName)
             {
                 case PlayerKeyNames.suitAntennaOrbInner:
-                    targetMaterial.color = color;
-                    break;
                 case PlayerKeyNames.suitAntennaOrbOuter:
-                    targetMaterial.color = color;
-                    break;
                 case PlayerKeyNames.helmetWindow:
+                case PlayerKeyNames.jetpackOxygenUpgradeGlow:
+                case PlayerKeyNames.jetpackPipe:
                     targetMaterial.color = color;
                     break;
                 case PlayerKeyNames.helmetCheeks:
                     targetMaterial.color = color;
                     // TODO: color resets when blink is used, fix this
                     break;
-                case PlayerKeyNames.jetpackPipe:
-                    targetMaterial.color = color;
-                    break;
                 case PlayerKeyNames.jetpackArrows:
                     EngineHub.PlayerMovement.arrowLitColor = color;
+                    // TODO: preview this in some way?
+                    break;
+                case PlayerKeyNames.jetpackArrowsOff:
+                    EngineHub.PlayerMovement.arrowUnlitColor = color;
+                    Material targetMaterial2 = jetpackDownArrowMaterial;
+                    targetMaterial.color = color;
+                    targetMaterial2.color = color;
                     break;
                 case PlayerKeyNames.jetpackBoostMeter:
+                    if (!EngineHub.Upgrades.boostDurationUpgradeIsUnlocked)
+                        targetMaterial.SetColor("_LowerColor", color);
                     break;
                 case PlayerKeyNames.jetpackBoostMeterUpgrade:
+                    if (EngineHub.Upgrades.boostDurationUpgradeIsUnlocked)
+                        targetMaterial.SetColor("_LowerColor", color);
                     break;
-                case PlayerKeyNames.jetpackOxygenMeter:
+                case PlayerKeyNames.jetpackBoostMeterOverdrive:
+                    if (EngineHub.PlayerMeterManager.overdriveIsActive)
+                        targetMaterial.SetColor("_LowerColor", color);
                     break;
-                case PlayerKeyNames.jetpackIndicatorOff:
-                    EngineHub.PlayerMovement.arrowUnlitColor = color;
-                    // TODO: Set shader color on several materials
+                case PlayerKeyNames.jetpackBoostMeterOff:
+                    targetMaterial.SetColor("_UpperColor", color);
                     break;
 
                 default:
@@ -403,31 +476,28 @@ namespace ColorCustomizer
             switch (playerShaderCategories[playerKeyName])
             {
                 case PlayerShaderCategory.ANTENNA_INNER:
-                    targetMaterial = EngineHub.PlayerAnimator.playerMeshRenderer.materials.Where(mat => mat.name.Contains("PlayerAntennaMat")).First();
+                    targetMaterial = playerAntennaInnerMaterial;
                     break;
                 case PlayerShaderCategory.ANTENNA_OUTER:
-                    targetMaterial = EngineHub.PlayerAnimator.playerMeshRenderer.materials.Where(mat => mat.name.Contains("PlayerAntennaOrbOuterMat")).First();
+                    targetMaterial = playerAntennaOuterMaterial;
                     break;
                 case PlayerShaderCategory.HELMET_WINDOW:
-                    targetMaterial = EngineHub.PlayerAnimator.playerMeshRenderer.materials.Where(mat => mat.name.Contains("PlayerHelmetFaceMat")).First();
+                    targetMaterial = playerHelmetWindowMaterial;
                     break;
                 case PlayerShaderCategory.HELMET_LIGHTS:
-                    targetMaterial = EngineHub.PlayerAnimator.playerMeshRenderer.materials.Where(mat => mat.name.Contains("PlayerBloopMat")).First();
+                    targetMaterial = playerHelmetLightsMaterial;
                     break;
                 case PlayerShaderCategory.JETPACK_ARROWS:
-                    targetMaterial = PlayerMovementControllerPatches.jetpackUpArrowMaterial;
+                    targetMaterial = jetpackUpArrowMaterial;
                     break;
                 case PlayerShaderCategory.JETPACK_BOOST:
-                    targetMaterial = PlayerMovementControllerPatches.jetpackBoostMeterMaterial;
+                    targetMaterial = jetpackBoostMeterMaterial;
                     break;
-                case PlayerShaderCategory.JETPACK_OXYGEN:
-                    targetMaterial = PlayerMovementControllerPatches.jetpackOxygenMeterMaterial;
+                case PlayerShaderCategory.JETPACK_OXYGEN_UPGRADE:
+                    targetMaterial = jetpackOxygenUpgradeMaterial;
                     break;
                 case PlayerShaderCategory.JETPACK_TUBE:
-                    targetMaterial = PlayerMovementControllerPatches.jetpackTubeMaterial;
-                    break;
-                case PlayerShaderCategory.JETPACK_OFF:
-                    targetMaterial = PlayerMovementControllerPatches.jetpackUpArrowMaterial;
+                    targetMaterial = jetpackTubeMaterial;
                     break;
                 default:
                     CustomizerPlugin.Logger.LogError($"Shader material finding not implemented for key {playerKeyName}");
@@ -450,23 +520,38 @@ namespace ColorCustomizer
 
             Material targetMaterial = null;
             Texture2D targetTexture = null;
+            string targetTextureKey = "_MainTexture";
             switch (playerTextureCategories[playerKeyName])
             {
                 case PlayerTextureCategory.SUIT:
-                    targetMaterial = PlayerModelControllerPatches.playerSuitMaterial;
-                    targetTexture = (Texture2D)targetMaterial.GetTexture("_MainTexture");
+                    targetMaterial = playerSuitMaterial;
+                    targetTexture = (Texture2D)targetMaterial.GetTexture(targetTextureKey);
                     break;
                 case PlayerTextureCategory.DEPTH_SUIT:
-                    targetMaterial = PlayerModelControllerPatches.playerDepthSuitMaterial;
-                    targetTexture = (Texture2D)targetMaterial.GetTexture("_MainTexture");
+                    targetMaterial = playerDepthSuitMaterial;
+                    targetTexture = (Texture2D)targetMaterial.GetTexture(targetTextureKey);
                     break;
                 case PlayerTextureCategory.JETPACK:
-                    targetMaterial = PlayerMovementControllerPatches.playerJetpackMaterial;
-                    targetTexture = (Texture2D)targetMaterial.GetTexture("_MainTexture");
+                    targetMaterial = playerJetpackMaterial;
+                    targetTexture = (Texture2D)targetMaterial.GetTexture(targetTextureKey);
                     break;
                 case PlayerTextureCategory.PROPELLER:
-                    targetMaterial = PlayerMovementControllerPatches.jetpackPropellerMaterial;
-                    targetTexture = (Texture2D)targetMaterial.GetTexture("_MainTexture");
+                    targetMaterial = jetpackPropellerMaterial;
+                    targetTexture = (Texture2D)targetMaterial.GetTexture(targetTextureKey);
+                    break;
+                case PlayerTextureCategory.OXYGEN_METER:
+                    targetMaterial = jetpackOxygenMeterMaterial;
+                    targetTexture = null;
+                    // TODO: figure out texture array stuff
+                    break;
+                case PlayerTextureCategory.OXYGEN_UPGRADE:
+                    targetMaterial = jetpackOxygenUpgradeMaterial;
+                    targetTextureKey = "_MainTex";
+                    targetTexture = (Texture2D)targetMaterial.GetTexture(targetTextureKey);
+                    break;
+                case PlayerTextureCategory.OXYGEN_UPGRADE_SLOT:
+                    targetMaterial = jetpackOxygenUpgradeSlotMaterial;
+                    targetTexture = (Texture2D)targetMaterial.GetTexture(targetTextureKey);
                     break;
                 default:
                     CustomizerPlugin.Logger.LogError($"Material/texture finding not implemented for key {playerKeyName}");
@@ -482,7 +567,7 @@ namespace ColorCustomizer
             if (!targetTexture.isReadable)
             {
                 targetTexture = MakeReadableTexture(targetTexture);
-                targetMaterial.SetTexture("_MainTexture", targetTexture);
+                targetMaterial.SetTexture(targetTextureKey, targetTexture);
             }
             return targetTexture;
         }
@@ -864,6 +949,13 @@ namespace ColorCustomizer
             jetpackPropellerBlades          = "jetpackPropellerBlades",
             jetpackPropellerShaft           = "jetpackPropellerShaft",
             jetpackPropellerHub             = "jetpackPropellerHub",
+            jetpackOxygenMeter              = "jetpackOxygenMeter",
+            jetpackOxygenMeterLow           = "jetpackOxygenMeterLow",
+            jetpackOxygenMeterOff           = "jetpackOxygenMeterOff",
+            jetpackOxygenUpgradeLight       = "jetpackOxygenUpgradeLight",
+            jetpackOxygenUpgradeCap         = "jetpackOxygenUpgradeCap",
+            jetpackOxygenUpgradeRing1       = "jetpackOxygenUpgradeRing1",
+            jetpackOxygenUpgradeRing2       = "jetpackOxygenUpgradeRing2",
 
             // Shader keys
             suitAntennaOrbInner = "suitAntennaOrbInner",
@@ -873,10 +965,12 @@ namespace ColorCustomizer
 
             jetpackPipe                 = "jetpackPipe",
             jetpackArrows               = "jetpackArrows",
+            jetpackArrowsOff            = "jetpackArrowsOff",
             jetpackBoostMeter           = "jetpackBoostMeter",
             jetpackBoostMeterUpgrade    = "jetpackBoostMeterUpgrade",
-            jetpackOxygenMeter          = "jetpackOxygenMeter",
-            jetpackIndicatorOff         = "jetpackIndicatorOff";
+            jetpackBoostMeterOverdrive  = "jetpackBoostMeterOverdrive",
+            jetpackBoostMeterOff        = "jetpackBoostMeterOff",
+            jetpackOxygenUpgradeGlow    = "jetpackOxygenUpgradeGlow";
     }
 
     public static class ShipKeyNames

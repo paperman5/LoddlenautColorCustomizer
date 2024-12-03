@@ -159,6 +159,7 @@ namespace ColorCustomizer
                     { PlayerKeyNames.jetpackPropellerConnectorInside,   "Propeller Ring 2" },
                     { PlayerKeyNames.jetpackPipeConnector,              "Pipe Ring"        },
                     { PlayerKeyNames.jetpackPipe,                       "Pipe"             },
+                    { PlayerKeyNames.jetpackBoostMeterOverdrive,        "Boost Overdrive"  },
                 },
                 canOpenPage = () => true,
             },
@@ -167,15 +168,32 @@ namespace ColorCustomizer
                 pageTitle = "Jetpack (2)",
                 settings = new Dictionary<string, string>
                 {
-                    { PlayerKeyNames.jetpackPropellerBlades,"Propeller Blades"  },
-                    { PlayerKeyNames.jetpackPropellerShaft, "Propeller Shaft"   },
-                    { PlayerKeyNames.jetpackPropellerHub,   "Propeller Hub"     },
-                    { PlayerKeyNames.jetpackArrows,         "Up/Down Arrows"    },
-                    { PlayerKeyNames.jetpackBoostMeter ,    "Boost Meter"       },
-                    { PlayerKeyNames.jetpackOxygenMeter,    "Oxygen Meter"      },
-                    { PlayerKeyNames.jetpackIndicatorOff,   "Light Off"         },
+                    { PlayerKeyNames.jetpackPropellerBlades,    "Propeller Blades"  },
+                    { PlayerKeyNames.jetpackPropellerShaft,     "Propeller Shaft"   },
+                    { PlayerKeyNames.jetpackPropellerHub,       "Propeller Hub"     },
+                    { PlayerKeyNames.jetpackArrows,             "Arrows On"         },
+                    { PlayerKeyNames.jetpackArrowsOff,          "Arrows Off"        },
+                    { PlayerKeyNames.jetpackBoostMeter ,        "Boost Meter"       },
+                    { PlayerKeyNames.jetpackBoostMeterUpgrade,  "Upgraded Boost"    },
+                    { PlayerKeyNames.jetpackBoostMeterOff,      "Boost Depleted"    },
+                    { PlayerKeyNames.jetpackOxygenMeter,        "Oxygen Meter"      },
+                    { PlayerKeyNames.jetpackOxygenMeterLow,     "Oxygen Low"        },
+                    { PlayerKeyNames.jetpackOxygenMeterOff,     "Oxygen Depleted"   },
                 },
                 canOpenPage = () => true,
+            },
+            new ColorPageInfo
+            {
+                pageTitle = "Oxygen Upgrades",
+                settings = new Dictionary<string, string>
+                {
+                    { PlayerKeyNames.jetpackOxygenUpgradeLight, "Light" },
+                    { PlayerKeyNames.jetpackOxygenUpgradeGlow,  "Glow"  },
+                    { PlayerKeyNames.jetpackOxygenUpgradeCap,   "Cap"   },
+                    { PlayerKeyNames.jetpackOxygenUpgradeRing1, "Ring 1"},
+                    { PlayerKeyNames.jetpackOxygenUpgradeRing2, "Ring 2"},
+                },
+                canOpenPage = () => EngineHub.Upgrades.oxygenUpgradeCount > 0,
             },
             new ColorPageInfo
             {

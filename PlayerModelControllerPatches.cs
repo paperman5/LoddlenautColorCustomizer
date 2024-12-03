@@ -6,15 +6,22 @@ namespace ColorCustomizer
     [HarmonyPatch(typeof(PlayerModelController))]
     public static class PlayerModelControllerPatches
     {
-        public static Material playerSuitMaterial = null;
-        public static Material playerDepthSuitMaterial = null;
+        const int suitBaseIndex = 0;
+        const int antennaInnerIndex = 1;
+        const int helmetLightIndex = 2;
+        const int helmetWindowIndex = 3;
+        const int antennaOuterIndex = 4;
 
         [HarmonyPatch(nameof(PlayerModelController.Awake))]
         [HarmonyPostfix]
         public static void Awake_Postfix(PlayerModelController __instance)
         {
-            playerSuitMaterial = __instance.playerMeshRenderer.materials[__instance.suitBaseMatIndex];
-            playerDepthSuitMaterial = __instance.depthModuleSuitMat;
+            CustomizerMod.playerSuitMaterial = __instance.playerMeshRenderer.materials[suitBaseIndex];
+            CustomizerMod.playerDepthSuitMaterial = __instance.depthModuleSuitMat;
+            CustomizerMod.playerAntennaInnerMaterial = __instance.playerMeshRenderer.materials[antennaInnerIndex];
+            CustomizerMod.playerHelmetLightsMaterial = __instance.playerMeshRenderer.materials[helmetLightIndex];
+            CustomizerMod.playerHelmetWindowMaterial = __instance.playerMeshRenderer.materials[helmetWindowIndex];
+            CustomizerMod.playerAntennaOuterMaterial = __instance.playerMeshRenderer.materials[antennaOuterIndex];
         }
 
         [HarmonyPatch(nameof(PlayerModelController.PointHeadAndBodyAtPoint))]
@@ -29,8 +36,12 @@ namespace ColorCustomizer
         [HarmonyPostfix]
         public static void OnDestroy_Postfix(PlayerModelController __instance)
         {
-            playerSuitMaterial = null;
-            playerDepthSuitMaterial = null;
+            CustomizerMod.playerSuitMaterial = null;
+            CustomizerMod.playerDepthSuitMaterial = null;
+            CustomizerMod.playerAntennaInnerMaterial = null;
+            CustomizerMod.playerHelmetLightsMaterial = null;
+            CustomizerMod.playerHelmetWindowMaterial = null;
+            CustomizerMod.playerAntennaOuterMaterial = null;
         }
     }
 }
