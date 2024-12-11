@@ -2,6 +2,7 @@
 using Rewired.Data;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -37,6 +38,16 @@ namespace ColorCustomizer
         internal static Material jetpackPropellerBoostRingMaterial = null;
         internal static Material jetpackOxygenUpgradeMaterial = null;
         internal static Material jetpackOxygenUpgradeSlotMaterial = null;
+        internal static Material gunMainMaterial = null;                // Set by BubbleGunAnimatorPatches
+        internal static Material gunTipMaterial = null; // Should be shared with main material but doesn't work in practice
+        internal static Material gunGlassMaterial = null;
+        internal static Material gunCoreMaterial = null;
+        internal static Material gunBlasterRodMaterial = null;
+        internal static Material gunBlasterDiskMaterial1 = null;
+        internal static Material gunBlasterDiskMaterial2 = null;
+        internal static Material gunBlasterBallMaterial = null;
+        internal static Material gunBarMaterial = null;                 // Set by BubbleGunControllerPatches
+        internal static Material gunLaserMaterial = null;
 
         #region Player Data
 
@@ -66,6 +77,11 @@ namespace ColorCustomizer
             JETPACK_BOOST,
             JETPACK_OXYGEN_UPGRADE,
             JETPACK_TUBE,
+            GUN_GLASS,
+            GUN_CORE,
+            GUN_LASER,
+            GUN_BARS,
+            GUN_BLASTER_BALL,
         }
 
         // Texture regions for modifying each texture-based color
@@ -111,6 +127,11 @@ namespace ColorCustomizer
             { PlayerKeyNames.jetpackPropellerShaft,             new RectInt(128, 0,   128, 128) },
             { PlayerKeyNames.jetpackPropellerHub,               new RectInt(0,   128, 128, 128) },
 
+            // Oxygen Meter (template for 1 bar on meter)
+            { PlayerKeyNames.jetpackOxygenMeter,    new RectInt(0, 0, 32, 32) },
+            { PlayerKeyNames.jetpackOxygenMeterLow, new RectInt(0, 0, 32, 32) },
+            { PlayerKeyNames.jetpackOxygenMeterOff, new RectInt(0, 0, 32, 32) },
+
             // Oxygen upgrade texture
             { PlayerKeyNames.jetpackOxygenUpgradeLight,         new RectInt(0,   0,   64,  64) },
             { PlayerKeyNames.jetpackOxygenUpgradeCap,           new RectInt(64,  0,   64,  64) },
@@ -118,6 +139,16 @@ namespace ColorCustomizer
             // Oxygen capsule slot texture
             { PlayerKeyNames.jetpackOxygenUpgradeRing1,         new RectInt(0,   0,  128, 128) },
             { PlayerKeyNames.jetpackOxygenUpgradeRing2,         new RectInt(128, 0,  128, 128) },
+
+            // Bubble gun texture
+            { PlayerKeyNames.gunTip1,           new RectInt(0,   0,  64, 64) },
+            { PlayerKeyNames.gunMain1,          new RectInt(64,  0,  64, 64) },
+            { PlayerKeyNames.gunMain2,          new RectInt(128, 0,  64, 64) },
+            { PlayerKeyNames.gunHandle,         new RectInt(192, 0,  64, 64) },
+            { PlayerKeyNames.gunTip2,           new RectInt(0,   64, 64, 64) },
+            { PlayerKeyNames.gunBlasterRod1,    new RectInt(64,  64, 64, 64) },
+            { PlayerKeyNames.gunBlasterRod2,    new RectInt(128, 64, 64, 64) },
+            { PlayerKeyNames.gunBlasterRod3,    new RectInt(192, 64, 64, 64) },
         };
 
         // For easy color changing, just call `playerColorFunctions[key](colorToSet)`
@@ -159,13 +190,22 @@ namespace ColorCustomizer
             { PlayerKeyNames.jetpackPropellerBlades,            color => SetPlayerTextureColor(PlayerKeyNames.jetpackPropellerBlades,           color) },
             { PlayerKeyNames.jetpackPropellerShaft,             color => SetPlayerTextureColor(PlayerKeyNames.jetpackPropellerShaft,            color) },
             { PlayerKeyNames.jetpackPropellerHub,               color => SetPlayerTextureColor(PlayerKeyNames.jetpackPropellerHub,              color) },
-            { PlayerKeyNames.jetpackOxygenMeter,                color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenMeter,               color) },
-            { PlayerKeyNames.jetpackOxygenMeterLow,             color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenMeterLow,            color) },
-            { PlayerKeyNames.jetpackOxygenMeterOff,             color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenMeterOff,            color) },
+            { PlayerKeyNames.jetpackOxygenMeter,                color => SetPlayerOxygenMeterColor(PlayerKeyNames.jetpackOxygenMeter,               color) },
+            { PlayerKeyNames.jetpackOxygenMeterLow,             color => SetPlayerOxygenMeterColor(PlayerKeyNames.jetpackOxygenMeterLow,            color) },
+            { PlayerKeyNames.jetpackOxygenMeterOff,             color => SetPlayerOxygenMeterColor(PlayerKeyNames.jetpackOxygenMeterOff,            color) },
             { PlayerKeyNames.jetpackOxygenUpgradeLight,         color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenUpgradeLight,        color) },
             { PlayerKeyNames.jetpackOxygenUpgradeCap,           color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenUpgradeCap,          color) },
             { PlayerKeyNames.jetpackOxygenUpgradeRing1,         color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenUpgradeRing1,        color) },
             { PlayerKeyNames.jetpackOxygenUpgradeRing2,         color => SetPlayerTextureColor(PlayerKeyNames.jetpackOxygenUpgradeRing2,        color) },
+
+            { PlayerKeyNames.gunMain1,          color => SetPlayerTextureColor(PlayerKeyNames.gunMain1,         color) },
+            { PlayerKeyNames.gunMain2,          color => SetPlayerTextureColor(PlayerKeyNames.gunMain2,         color) },
+            { PlayerKeyNames.gunHandle,         color => SetPlayerTextureColor(PlayerKeyNames.gunHandle,        color) },
+            { PlayerKeyNames.gunTip1,           color => SetPlayerTextureColor(PlayerKeyNames.gunTip1,          color) },
+            { PlayerKeyNames.gunTip2,           color => SetPlayerTextureColor(PlayerKeyNames.gunTip2,          color) },
+            { PlayerKeyNames.gunBlasterRod1,    color => SetPlayerTextureColor(PlayerKeyNames.gunBlasterRod1,   color) },
+            { PlayerKeyNames.gunBlasterRod2,    color => SetPlayerTextureColor(PlayerKeyNames.gunBlasterRod2,   color) },
+            { PlayerKeyNames.gunBlasterRod3,    color => SetPlayerTextureColor(PlayerKeyNames.gunBlasterRod3,   color) },
 
             { PlayerKeyNames.suitAntennaOrbInner,       color => SetPlayerShaderParamColor(PlayerKeyNames.suitAntennaOrbInner,          color) },
             { PlayerKeyNames.suitAntennaOrbOuter,       color => SetPlayerShaderParamColor(PlayerKeyNames.suitAntennaOrbOuter,          color) },
@@ -179,6 +219,16 @@ namespace ColorCustomizer
             { PlayerKeyNames.jetpackBoostMeterOverdrive,color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackBoostMeterOverdrive,   color) },
             { PlayerKeyNames.jetpackBoostMeterOff,      color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackBoostMeterOff,         color) },
             { PlayerKeyNames.jetpackOxygenUpgradeGlow,  color => SetPlayerShaderParamColor(PlayerKeyNames.jetpackOxygenUpgradeGlow,     color) },
+            { PlayerKeyNames.gunGlass,          color => SetPlayerShaderParamColor(PlayerKeyNames.gunGlass,         color) },
+            { PlayerKeyNames.gunCoreInactive,   color => SetPlayerShaderParamColor(PlayerKeyNames.gunCoreInactive,  color) },
+            { PlayerKeyNames.gunCoreActive,     color => { SetPlayerShaderParamColor(PlayerKeyNames.gunCoreActive, color); SetPlayerShaderParamColor(PlayerKeyNames.gunCoreFlicker, color); } },
+            { PlayerKeyNames.gunCoreFlicker,    color => SetPlayerShaderParamColor(PlayerKeyNames.gunCoreFlicker,   color) },
+            { PlayerKeyNames.gunCoreActiveUpgraded,     color => SetPlayerShaderParamColor(PlayerKeyNames.gunCoreActiveUpgraded,    color) },
+            { PlayerKeyNames.gunBlasterBarsInactive,    color => { SetPlayerShaderParamColor(PlayerKeyNames.gunBlasterBarsInactive, color); SetPlayerShaderParamColor(PlayerKeyNames.gunBlasterBarsActive, color); } },
+            { PlayerKeyNames.gunBlasterBarsActive,      color => SetPlayerShaderParamColor(PlayerKeyNames.gunBlasterBarsActive,     color) },
+            { PlayerKeyNames.gunLaser,                  color => SetPlayerShaderParamColor(PlayerKeyNames.gunLaser,                 color) },
+            { PlayerKeyNames.gunLaserUpgraded,          color => SetPlayerShaderParamColor(PlayerKeyNames.gunLaserUpgraded,         color) },
+            { PlayerKeyNames.gunBlasterBall,            color => SetPlayerShaderParamColor(PlayerKeyNames.gunBlasterBall,           color) },
         };
 
         public static Dictionary<string, Color> playerColorDefaults = new Dictionary<string, Color>
@@ -239,6 +289,25 @@ namespace ColorCustomizer
             { PlayerKeyNames.jetpackOxygenUpgradeCap,           GetColorFromString("b592ff") },
             { PlayerKeyNames.jetpackOxygenUpgradeRing1,         GetColorFromString("475999") },
             { PlayerKeyNames.jetpackOxygenUpgradeRing2,         GetColorFromString("39467b") },
+
+            { PlayerKeyNames.gunMain1,          GetColorFromString("849bcb") },
+            { PlayerKeyNames.gunMain2,          GetColorFromString("6888c8") },
+            { PlayerKeyNames.gunHandle,         GetColorFromString("445b86") },
+            { PlayerKeyNames.gunTip1,           GetColorFromString("ecc93c") },
+            { PlayerKeyNames.gunTip2,           GetColorFromString("c6aa34") },
+            { PlayerKeyNames.gunBlasterRod1,    GetColorFromString("84939c") },
+            { PlayerKeyNames.gunBlasterRod2,    GetColorFromString("9cadb7") },
+            { PlayerKeyNames.gunBlasterRod3,    GetColorFromString("aabfc8") },
+            { PlayerKeyNames.gunGlass,          GetColorFromString("C6E2FFB2") },
+            { PlayerKeyNames.gunCoreInactive,   GetColorFromString("108F6B") },
+            { PlayerKeyNames.gunCoreActive,     GetColorFromString("16BF92") },
+            { PlayerKeyNames.gunCoreFlicker,    GetColorFromString("16BF92") },
+            { PlayerKeyNames.gunCoreActiveUpgraded,     GetColorFromString("30BF41") },
+            { PlayerKeyNames.gunBlasterBarsInactive,    GetColorFromString("3ABF9C") },
+            { PlayerKeyNames.gunBlasterBarsActive,      GetColorFromString("3ABF9C") },
+            { PlayerKeyNames.gunLaser,          GetColorFromString("2FBF98") },
+            { PlayerKeyNames.gunLaserUpgraded,  GetColorFromString("2FBF40") },
+            { PlayerKeyNames.gunBlasterBall,    GetColorFromString("00BF8B") },
         };
 
         public static Dictionary<string, PlayerTextureCategory> playerTextureCategories = new Dictionary<string, PlayerTextureCategory>
@@ -290,6 +359,15 @@ namespace ColorCustomizer
             
             { PlayerKeyNames.jetpackOxygenUpgradeRing1, PlayerTextureCategory.OXYGEN_UPGRADE_SLOT },
             { PlayerKeyNames.jetpackOxygenUpgradeRing2, PlayerTextureCategory.OXYGEN_UPGRADE_SLOT },
+
+            { PlayerKeyNames.gunTip1,           PlayerTextureCategory.BUBBLE_GUN },
+            { PlayerKeyNames.gunMain1,          PlayerTextureCategory.BUBBLE_GUN },
+            { PlayerKeyNames.gunMain2,          PlayerTextureCategory.BUBBLE_GUN },
+            { PlayerKeyNames.gunHandle,         PlayerTextureCategory.BUBBLE_GUN },
+            { PlayerKeyNames.gunTip2,           PlayerTextureCategory.BUBBLE_GUN },
+            { PlayerKeyNames.gunBlasterRod1,    PlayerTextureCategory.BUBBLE_GUN },
+            { PlayerKeyNames.gunBlasterRod2,    PlayerTextureCategory.BUBBLE_GUN },
+            { PlayerKeyNames.gunBlasterRod3,    PlayerTextureCategory.BUBBLE_GUN },
         };
 
         public static Dictionary<string, PlayerShaderCategory> playerShaderCategories = new Dictionary<string, PlayerShaderCategory>
@@ -306,18 +384,35 @@ namespace ColorCustomizer
             { PlayerKeyNames.jetpackBoostMeterOverdrive,PlayerShaderCategory.JETPACK_BOOST  },
             { PlayerKeyNames.jetpackBoostMeterOff,      PlayerShaderCategory.JETPACK_BOOST  },
             { PlayerKeyNames.jetpackOxygenUpgradeGlow,  PlayerShaderCategory.JETPACK_OXYGEN_UPGRADE  },
+            { PlayerKeyNames.gunGlass,                  PlayerShaderCategory.GUN_GLASS      },
+            { PlayerKeyNames.gunCoreInactive,           PlayerShaderCategory.GUN_CORE       },
+            { PlayerKeyNames.gunCoreActive,             PlayerShaderCategory.GUN_CORE       },
+            { PlayerKeyNames.gunCoreFlicker,            PlayerShaderCategory.GUN_CORE       },
+            { PlayerKeyNames.gunCoreActiveUpgraded,     PlayerShaderCategory.GUN_CORE       },
+            { PlayerKeyNames.gunBlasterBarsInactive,    PlayerShaderCategory.GUN_BARS       },
+            { PlayerKeyNames.gunBlasterBarsActive,      PlayerShaderCategory.GUN_BARS       },
+            { PlayerKeyNames.gunLaser,                  PlayerShaderCategory.GUN_LASER      },
+            { PlayerKeyNames.gunLaserUpgraded,          PlayerShaderCategory.GUN_LASER      },
+            { PlayerKeyNames.gunBlasterBall,            PlayerShaderCategory.GUN_BLASTER_BALL },
         };
 
         // Certain player colors use HDR color to create a bloom effect. To set these colors properly we can use a base SDR color
         // and multiply it by an intensity. Final color is `BaseColor * (2^intensity)`.
         public static Dictionary<string, float> playerLightIntensities = new Dictionary<string, float>
         {
-            { PlayerKeyNames.jetpackArrows, 1.4f },
-            { PlayerKeyNames.jetpackBoostMeter, 1.25f },
-            { PlayerKeyNames.jetpackBoostMeterUpgrade, 1.8f },
-            { PlayerKeyNames.jetpackBoostMeterOverdrive, 2.407534f },
-            { PlayerKeyNames.jetpackOxygenUpgradeGlow, 1.634228f },
-            { PlayerKeyNames.suitAntennaOrbInner, 1.8f },
+            { PlayerKeyNames.jetpackArrows,                 1.4f },
+            { PlayerKeyNames.jetpackBoostMeter,             1.25f },
+            { PlayerKeyNames.jetpackBoostMeterUpgrade,      1.8f },
+            { PlayerKeyNames.jetpackBoostMeterOverdrive,    2.407534f },
+            { PlayerKeyNames.jetpackOxygenUpgradeGlow,      1.634228f },
+            { PlayerKeyNames.suitAntennaOrbInner,           1.8f },
+            { PlayerKeyNames.gunCoreActive,                 2.8f },
+            { PlayerKeyNames.gunCoreFlicker,                1.0f },
+            { PlayerKeyNames.gunCoreActiveUpgraded,         4.0f },
+            { PlayerKeyNames.gunBlasterBarsActive,          2.0f },
+            { PlayerKeyNames.gunLaser,                      2.0f },
+            { PlayerKeyNames.gunLaserUpgraded,              2.0f },
+            { PlayerKeyNames.gunBlasterBall,                1.0f },
         };
 
         #endregion
@@ -393,13 +488,86 @@ namespace ColorCustomizer
         public static void SetPlayerTextureColor(string param, Color color)
         {
             if (!playerTextureCoords.ContainsKey(param))
+            {
+                CustomizerPlugin.Logger.LogError($"Texture coordinates not found for {param}");
                 return;
+            }
             
             RectInt rect = playerTextureCoords[param];
-            Texture2D tex = GetPlayerTexture(param);
-            if (tex == null)
+            Texture[] textures = GetPlayerTextures(param);
+            if (textures == null || textures.Count() == 0)
                 return;
-            SetTextureBlockColor(tex, rect, color);
+            
+            foreach (var tex in textures)
+            {
+                SetTextureBlockColor((Texture2D)tex, rect, color);
+            }
+        }
+
+        public static void SetPlayerOxygenMeterColor(string param, Color color)
+        {
+            // Special case for the jetpack oxygen meter, which uses a Texture2DArray
+            if (playerTextureCategories[param] != PlayerTextureCategory.OXYGEN_METER)
+                return;
+            Texture[] textures = GetPlayerTextures(param);
+            Texture2DArray targetTexture = (Texture2DArray)textures[0];
+            RectInt rectTemplate = playerTextureCoords[param];
+            switch (param)
+            {
+                case PlayerKeyNames.jetpackOxygenMeter:
+                    for (int textureSlice = 3; textureSlice < targetTexture.depth; textureSlice++)
+                    {
+                        // fill the squares for the meter up to the current slice
+                        int colEnd = Math.Min(textureSlice, 4);
+                        RectInt rect = new RectInt(0, targetTexture.height - 32, rectTemplate.width * colEnd, rectTemplate.height);
+                        SetTextureBlockColor(targetTexture, rect, color, textureSlice, false);
+                        if (textureSlice > 4)
+                        {
+                            colEnd = textureSlice - 4;
+                            rect = new RectInt(0, targetTexture.height - 64, rectTemplate.width * colEnd, rectTemplate.height);
+                            SetTextureBlockColor(targetTexture, rect, color, textureSlice, false);
+                        }
+                    }
+                    targetTexture.Apply();
+                    break;
+                case PlayerKeyNames.jetpackOxygenMeterLow:
+                    for (int textureSlice = 1; textureSlice < 3; textureSlice++)
+                    {
+                        // fill the squares for the meter up to the current slice
+                        int colEnd = Math.Min(textureSlice, 4);
+                        RectInt rect = new RectInt(0, targetTexture.height - 32, rectTemplate.width * colEnd, rectTemplate.height);
+                        SetTextureBlockColor(targetTexture, rect, color, textureSlice, false);
+                    }
+                    targetTexture.Apply();
+                    break;
+                case PlayerKeyNames.jetpackOxygenMeterOff:
+                    // opposite of jetpackOxygenMeter
+                    for (int textureSlice = 0; textureSlice < targetTexture.depth; textureSlice++)
+                    {
+                        int index = targetTexture.depth - 1 - textureSlice;
+                        int colEnd = Math.Min(index, 4);
+                        RectInt rect = new RectInt(
+                            targetTexture.width - colEnd * rectTemplate.width,
+                            targetTexture.height - 64,
+                            colEnd * rectTemplate.width,
+                            rectTemplate.height
+                        );
+                        SetTextureBlockColor(targetTexture, rect, color, textureSlice, false);
+                        if (index > 4)
+                        {
+                            colEnd = index - 4;
+                            rect = rect = new RectInt(
+                                targetTexture.width - colEnd * rectTemplate.width,
+                                targetTexture.height - 32,
+                                colEnd * rectTemplate.width,
+                                rectTemplate.height
+                            );
+                            SetTextureBlockColor(targetTexture, rect, color, textureSlice, false);
+                        }
+                    }
+                    targetTexture.Apply();
+                    break;
+            }
         }
 
         public static void SetPlayerShaderParamColor(string playerKeyName, Color color)
@@ -418,6 +586,8 @@ namespace ColorCustomizer
                 case PlayerKeyNames.helmetWindow:
                 case PlayerKeyNames.jetpackOxygenUpgradeGlow:
                 case PlayerKeyNames.jetpackPipe:
+                case PlayerKeyNames.gunGlass:
+                case PlayerKeyNames.gunBlasterBall:
                     targetMaterial.color = color;
                     break;
                 case PlayerKeyNames.helmetCheeks:
@@ -449,7 +619,39 @@ namespace ColorCustomizer
                 case PlayerKeyNames.jetpackBoostMeterOff:
                     targetMaterial.SetColor("_UpperColor", color);
                     break;
-
+                case PlayerKeyNames.gunCoreInactive:
+                    targetMaterial.color = color;
+                    EngineHub.BubbleGunAnimator.coreInactiveColor = color;
+                    break;
+                case PlayerKeyNames.gunCoreActive:
+                    EngineHub.BubbleGunAnimator.coreActiveColor = color;
+                    break;
+                case PlayerKeyNames.gunCoreFlicker:
+                    EngineHub.BubbleGunAnimator.coreFlickerColor = color;
+                    break;
+                case PlayerKeyNames.gunCoreActiveUpgraded:
+                    EngineHub.BubbleGunAnimator.upgradedCoreActiveColor = color;
+                    break;
+                case PlayerKeyNames.gunBlasterBarsInactive:
+                    targetMaterial.color = color;
+                    EngineHub.BubbleGunAnimator.blasterBarsInactiveColor = color;
+                    break;
+                case PlayerKeyNames.gunBlasterBarsActive:
+                    EngineHub.BubbleGunAnimator.blasterBarsActiveColor = color;
+                    break;
+                case PlayerKeyNames.gunLaser:
+                    if (!EngineHub.Upgrades.laserEfficiencyUpgradeIsUnlocked)
+                    {
+                        targetMaterial.color = color;
+                    }
+                    break;
+                case PlayerKeyNames.gunLaserUpgraded:
+                    if (EngineHub.Upgrades.laserEfficiencyUpgradeIsUnlocked)
+                    {
+                        targetMaterial.color = color;
+                    }
+                    EngineHub.BubbleGun.upgradedLaserColor = color;
+                    break;
                 default:
                     CustomizerPlugin.Logger.LogInfo($"Unrecognized shader parameter key: {playerKeyName}");
                     break;
@@ -499,6 +701,21 @@ namespace ColorCustomizer
                 case PlayerShaderCategory.JETPACK_TUBE:
                     targetMaterial = jetpackTubeMaterial;
                     break;
+                case PlayerShaderCategory.GUN_GLASS:
+                    targetMaterial = gunGlassMaterial;
+                    break;
+                case PlayerShaderCategory.GUN_CORE:
+                    targetMaterial = gunCoreMaterial;
+                    break;
+                case PlayerShaderCategory.GUN_BARS:
+                    targetMaterial = gunBarMaterial;
+                    break;
+                case PlayerShaderCategory.GUN_LASER:
+                    targetMaterial = gunLaserMaterial;
+                    break;
+                case PlayerShaderCategory.GUN_BLASTER_BALL:
+                    targetMaterial = gunBlasterBallMaterial;
+                    break;
                 default:
                     CustomizerPlugin.Logger.LogError($"Shader material finding not implemented for key {playerKeyName}");
                     return null;
@@ -513,63 +730,82 @@ namespace ColorCustomizer
             return targetMaterial;
         }
 
-        private static Texture2D GetPlayerTexture(string playerKeyName)
+        private static Texture[] GetPlayerTextures(string playerKeyName)
         {
             if (customizerUI == null || !playerTextureCategories.ContainsKey(playerKeyName))
                 return null;
 
-            Material targetMaterial = null;
-            Texture2D targetTexture = null;
-            string targetTextureKey = "_MainTexture";
+            List<Material> targetMaterials = new List<Material>();
+            List<Texture> targetTextures = new List<Texture>();
+            List<string> targetTextureKeys = ["_MainTexture"];
             switch (playerTextureCategories[playerKeyName])
             {
                 case PlayerTextureCategory.SUIT:
-                    targetMaterial = playerSuitMaterial;
-                    targetTexture = (Texture2D)targetMaterial.GetTexture(targetTextureKey);
+                    targetMaterials.Add(playerSuitMaterial);
+                    targetTextures.Add((Texture2D)targetMaterials[0].GetTexture(targetTextureKeys[0]));
                     break;
                 case PlayerTextureCategory.DEPTH_SUIT:
-                    targetMaterial = playerDepthSuitMaterial;
-                    targetTexture = (Texture2D)targetMaterial.GetTexture(targetTextureKey);
+                    targetMaterials.Add(playerDepthSuitMaterial);
+                    targetTextures.Add((Texture2D)targetMaterials[0].GetTexture(targetTextureKeys[0]));
                     break;
                 case PlayerTextureCategory.JETPACK:
-                    targetMaterial = playerJetpackMaterial;
-                    targetTexture = (Texture2D)targetMaterial.GetTexture(targetTextureKey);
+                    targetMaterials.Add(playerJetpackMaterial);
+                    targetTextures.Add((Texture2D)targetMaterials[0].GetTexture(targetTextureKeys[0]));
                     break;
                 case PlayerTextureCategory.PROPELLER:
-                    targetMaterial = jetpackPropellerMaterial;
-                    targetTexture = (Texture2D)targetMaterial.GetTexture(targetTextureKey);
+                    targetMaterials.Add(jetpackPropellerMaterial);
+                    targetTextures.Add((Texture2D)targetMaterials[0].GetTexture(targetTextureKeys[0]));
                     break;
                 case PlayerTextureCategory.OXYGEN_METER:
-                    targetMaterial = jetpackOxygenMeterMaterial;
-                    targetTexture = null;
-                    // TODO: figure out texture array stuff
-                    break;
+                    // Special case, return early so we don't attempt to set Texture2DArray
+                    targetMaterials.Add(jetpackOxygenMeterMaterial);
+                    targetTextureKeys = ["_TextureArray"];
+                    targetTextures.Add((Texture2DArray)targetMaterials[0].GetTexture(targetTextureKeys[0]));
+                    return targetTextures.ToArray();
                 case PlayerTextureCategory.OXYGEN_UPGRADE:
-                    targetMaterial = jetpackOxygenUpgradeMaterial;
-                    targetTextureKey = "_MainTex";
-                    targetTexture = (Texture2D)targetMaterial.GetTexture(targetTextureKey);
+                    targetMaterials.Add(jetpackOxygenUpgradeMaterial);
+                    targetTextureKeys = ["_MainTex"];
+                    targetTextures.Add((Texture2D)targetMaterials[0].GetTexture(targetTextureKeys[0]));
                     break;
                 case PlayerTextureCategory.OXYGEN_UPGRADE_SLOT:
-                    targetMaterial = jetpackOxygenUpgradeSlotMaterial;
-                    targetTexture = (Texture2D)targetMaterial.GetTexture(targetTextureKey);
+                    targetMaterials.Add(jetpackOxygenUpgradeSlotMaterial);
+                    targetTextures.Add((Texture2D)targetMaterials[0].GetTexture(targetTextureKeys[0]));
+                    break;
+                case PlayerTextureCategory.BUBBLE_GUN:
+                    // This one is why we need an array of textures in this function instead of a single one
+                    // Changing the "shared" material on the blaster doesn't change all the associated materials in this case
+                    targetMaterials = new List<Material>
+                    {
+                        gunMainMaterial, gunTipMaterial, gunBlasterRodMaterial, gunBlasterDiskMaterial1, gunBlasterDiskMaterial2
+                    };
+                    targetTextureKeys = new List<string>();
+                    foreach (var mat in targetMaterials)
+                    {
+                        targetTextureKeys.Add("_MainTexture");
+                        targetTextures.Add((Texture2D)mat.GetTexture("_MainTexture"));
+                    }
                     break;
                 default:
                     CustomizerPlugin.Logger.LogError($"Material/texture finding not implemented for key {playerKeyName}");
                     return null;
             }
 
-            if (targetMaterial == null || targetTexture == null)
+            if (targetMaterials.Count == 0 || targetTextures.Count == 0)
             {
                 CustomizerPlugin.Logger.LogError($"Key {playerKeyName} recognized but could not get associated material/texture");
                 return null;
             }
 
-            if (!targetTexture.isReadable)
+            for (int i = 0; i < targetMaterials.Count; i++)
             {
-                targetTexture = MakeReadableTexture(targetTexture);
-                targetMaterial.SetTexture(targetTextureKey, targetTexture);
+                if (!targetTextures[i].isReadable)
+                {
+                    targetTextures[i] = MakeReadableTexture((Texture2D)targetTextures[i]);
+                    targetMaterials[i].SetTexture(targetTextureKeys[i], targetTextures[i]);
+                }
             }
-            return targetTexture;
+
+            return targetTextures.ToArray();
         }
 
         #endregion
@@ -669,7 +905,7 @@ namespace ColorCustomizer
             return dst as T;
         }
 
-        private static void SetTextureBlockColor(Texture2D tex, RectInt rect, Color color)
+        private static void SetTextureBlockColor(Texture2D tex, RectInt rect, Color color, bool apply = true)
         {
             //CustomizerPlugin.Logger.LogInfo($"Setting texture {tex.ToString()} rect {rect.ToString()} color {color.ToString()}");
             for (int ml = 0; ml < tex.mipmapCount; ml++)
@@ -683,7 +919,32 @@ namespace ColorCustomizer
                     }
                 }
             }
-            tex.Apply();
+            if (apply)
+            {
+                tex.Apply();
+            }
+        }
+
+        private static void SetTextureBlockColor(Texture2DArray tex, RectInt rect, Color color, int index, bool apply = true)
+        {
+            for (int ml = 0; ml < tex.mipmapCount; ml++)
+            {
+                int div = (int)Mathf.Pow(2, ml);
+                Color[] pixels = tex.GetPixels(index, ml);
+                for (int x = rect.x / div; x < (rect.x + rect.width) / div; x++)
+                {
+                    for (int y = rect.y / div; y < (rect.y + rect.height) / div; y++)
+                    {
+                        int i = (y * tex.width) + x;
+                        pixels[i] = color;
+                    }
+                }
+                tex.SetPixels(pixels, index, ml);
+            }
+            if (apply)
+            {
+                tex.Apply();
+            }
         }
 
         private static Texture2D MakeReadableTexture(Texture2D tex)
@@ -908,6 +1169,32 @@ namespace ColorCustomizer
                 }
             }
         }
+
+        public static void SaveTexture2DArray(Material mat, string shaderKey)
+        {
+            Texture2DArray texArr = (Texture2DArray)mat.GetTexture(shaderKey);
+            if (texArr == null)
+                return;
+
+            for (int i = 0; i < texArr.depth; i++)
+            {
+                Color[] pixels = texArr.GetPixels(i, 0);
+                Texture2D subTex = new Texture2D(texArr.width, texArr.height, texArr.format, false, false);
+                subTex.SetPixels(pixels);
+                subTex.Apply();
+
+                string filename = string.Concat(new string[]
+                {
+                    "D:/LoddlenautDump/",
+                    "TexArray",
+                    "-",
+                    i.ToString(),
+                    ".png"
+                });
+
+                File.WriteAllBytes(filename, subTex.EncodeToPNG());
+            }
+        }
     }
     public static class PlayerKeyNames
     {
@@ -957,6 +1244,15 @@ namespace ColorCustomizer
             jetpackOxygenUpgradeRing1       = "jetpackOxygenUpgradeRing1",
             jetpackOxygenUpgradeRing2       = "jetpackOxygenUpgradeRing2",
 
+            gunMain1        = "gunMain1",
+            gunMain2        = "gunMain2",
+            gunHandle       = "gunHandle",
+            gunTip1         = "gunTip1",
+            gunTip2         = "gunTip2",
+            gunBlasterRod1  = "gunBlasterRod1",
+            gunBlasterRod2  = "gunBlasterRod2",
+            gunBlasterRod3  = "gunBlasterRod3",
+
             // Shader keys
             suitAntennaOrbInner = "suitAntennaOrbInner",
             suitAntennaOrbOuter = "suitAntennaOrbOuter",
@@ -970,7 +1266,18 @@ namespace ColorCustomizer
             jetpackBoostMeterUpgrade    = "jetpackBoostMeterUpgrade",
             jetpackBoostMeterOverdrive  = "jetpackBoostMeterOverdrive",
             jetpackBoostMeterOff        = "jetpackBoostMeterOff",
-            jetpackOxygenUpgradeGlow    = "jetpackOxygenUpgradeGlow";
+            jetpackOxygenUpgradeGlow    = "jetpackOxygenUpgradeGlow",
+            
+            gunGlass                = "gunGlass",
+            gunCoreInactive         = "gunCoreInactive",
+            gunCoreActive           = "gunCoreActive",
+            gunCoreFlicker          = "gunCoreFlicker",
+            gunCoreActiveUpgraded   = "gunCoreActiveUpgraded",
+            gunBlasterBarsInactive  = "gunBlasterBarsInactive",
+            gunBlasterBarsActive    = "gunBlasterBarsActive",
+            gunLaser                = "gunLaser",
+            gunLaserUpgraded        = "gunLaserUpgraded",
+            gunBlasterBall          = "gunBlasterBall";
     }
 
     public static class ShipKeyNames

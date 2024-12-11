@@ -22,7 +22,7 @@ namespace ColorCustomizer
             }
             if (Input.GetKeyDown(CustomizerMod.testingKeyCode))
             {
-                CustomizerMod.PrintRewiredConfiguration();
+                CustomizerMod.SaveTexture2DArray(CustomizerMod.jetpackOxygenMeterMaterial, "_TextureArray");
             }
         }
     }

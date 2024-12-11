@@ -198,8 +198,45 @@ namespace ColorCustomizer
             new ColorPageInfo
             {
                 pageTitle = "Bubble Gun",
-                settings = new Dictionary<string, string>(),
+                settings = new Dictionary<string, string>
+                {
+                    { PlayerKeyNames.gunMain1,  "Main 1" },
+                    { PlayerKeyNames.gunMain2,  "Main 2" },
+                    { PlayerKeyNames.gunHandle, "Handle" },
+                    { PlayerKeyNames.gunTip1,   "Tip 1" },
+                    { PlayerKeyNames.gunTip2,   "Tip 2" },
+                    { PlayerKeyNames.gunGlass,  "Glass" },
+                    { PlayerKeyNames.gunCoreInactive,   "Core Inactive" },
+                    // active color should also change flicker color
+                    { PlayerKeyNames.gunCoreActive,     "Core Active" },
+                    { PlayerKeyNames.gunLaser,  "Laser" },
+                },
                 canOpenPage = () => true,
+            },
+            new ColorPageInfo
+            {
+                pageTitle = "Blaster Upgrade",
+                settings = new Dictionary<string, string>
+                {
+                    { PlayerKeyNames.gunBlasterBarsInactive,  "Blaster Bars" },
+                    // active color should also change inactive color
+                    //{ PlayerKeyNames.gunBlasterBarsActive,  "Bars Active" },
+                    { PlayerKeyNames.gunBlasterRod1, "Blaster Rod 1" },
+                    { PlayerKeyNames.gunBlasterRod2, "Blaster Rod 2" },
+                    { PlayerKeyNames.gunBlasterRod3, "Blaster Rod 3" },
+                    { PlayerKeyNames.gunBlasterBall, "Blaster Ball" },
+                },
+                canOpenPage = () => EngineHub.Upgrades.blasterModeIsUnlocked,
+            },
+            new ColorPageInfo
+            {
+                pageTitle = "Efficiency Upgrade",
+                settings = new Dictionary<string, string>
+                {
+                    { PlayerKeyNames.gunCoreActiveUpgraded,  "Efficiency Core" },
+                    { PlayerKeyNames.gunLaserUpgraded,  "Efficiency Laser" },
+                },
+                canOpenPage = () => EngineHub.Upgrades.laserEfficiencyUpgradeIsUnlocked,
             },
             new ColorPageInfo
             {
