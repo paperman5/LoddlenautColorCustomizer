@@ -858,6 +858,11 @@ namespace ColorCustomizer
                 CreateUIButtonPrototype();
             }
 
+            //Sprite betterButtonSprite = CustomizerPlugin.customizerAssets.LoadAsset<Sprite>("color_button");
+            Material checkerboardMaterial = CustomizerPlugin.customizerAssets.LoadAsset<Material>("CheckerboardTransparency");
+            GameObject betterSpriteObj = GameObject.Find("/PlayerRoot/UI Manager/Structure Menu Canvas/CentralGameMenu/CentralGameMenuParent/CentralGameMenuBackground/ObjectivesTabContents/ObjectiveMenuCard/ObjectiveHeaderBG");
+            Sprite betterButtonSprite = betterSpriteObj.GetComponent<Image>().sprite;
+
             // Create a "prefab" of sorts, from code
             GameObject prototype = new GameObject("ColorMenuEntry");
             RectTransform rt = prototype.AddComponent<RectTransform>();
@@ -884,6 +889,9 @@ namespace ColorCustomizer
 
             // Create color & reset buttons
             GameObject colorButtonObj = Instantiate(CustomizerMod.uiButtonPrototype);
+            colorButtonObj.GetComponent<Image>().material = checkerboardMaterial;
+            colorButtonObj.GetComponent<Image>().sprite = betterButtonSprite;
+            colorButtonObj.transform.GetChild(0).GetComponent<TextMeshProUGUI>().gameObject.SetActive(false); // disable text
             colorButtonObj.SetActive(true);
             colorButtonObj.name = "ColorButton";
             BetterButton colorButton = colorButtonObj.GetComponent<BetterButton>();
@@ -893,15 +901,16 @@ namespace ColorCustomizer
             // Scale down & make twice as large to get sharper corners on the buttons
             rt3.anchorMin = new Vector2(1.0f, 0.5f);
             rt3.anchorMax = new Vector2(1.0f, 0.5f);
-            rt3.localScale = new Vector3(0.5f, 0.5f, 1f);
-            rt3.sizeDelta = colorButtonSize * 2;
             rt3.anchoredPosition = new Vector2(-(entryButtonSideMargin + colorButtonSize.x / 2f + resetButtonSize.x + 10f), 0f);
-            pointerEvent.defaultScale = Vector3.one * 0.5f;
-            pointerEvent.hoverScale = Vector3.one * 0.6f;
+            rt3.sizeDelta = colorButtonSize;
+            pointerEvent.defaultScale = Vector3.one;
+            pointerEvent.hoverScale = Vector3.one * 1.2f;
             rt3.SetParent(prototype.transform, false);
 
             GameObject resetButtonObj = Instantiate(CustomizerMod.uiButtonPrototype);
+            resetButtonObj.transform.GetChild(0).GetComponent<TextMeshProUGUI>().gameObject.SetActive(false); // disable text
             resetButtonObj.SetActive(true);
+            resetButtonObj.GetComponent<Image>().sprite = betterButtonSprite;
             resetButtonObj.name = "ResetButton";
             BetterButton resetButton = resetButtonObj.GetComponent<BetterButton>();
             AnimateOnPointerEvent pointerEvent2 = resetButtonObj.GetComponent<AnimateOnPointerEvent>();
@@ -910,11 +919,9 @@ namespace ColorCustomizer
             img3.color = resetButtonColor;
             rt4.anchorMin = new Vector2(1.0f, 0.5f);
             rt4.anchorMax = new Vector2(1.0f, 0.5f);
-            rt4.localScale = new Vector3(0.5f, 0.5f, 1f);
-            rt4.sizeDelta = resetButtonSize * 2;
-            pointerEvent2.defaultScale /= 2.0f;
-            pointerEvent2.hoverScale /= 2.0f;
-            rt4.anchoredPosition = new Vector2(-(entryButtonSideMargin + resetButtonSize.x / 2f), 0f);
+            rt4.sizeDelta = resetButtonSize;
+            pointerEvent2.defaultScale = Vector3.one;
+            pointerEvent2.hoverScale = Vector3.one * 1.2f;
             rt4.SetParent(prototype.transform, false);
             GameObject resetButtonImgObj = new GameObject("ResetImage");
             RectTransform rt5 = resetButtonImgObj.AddComponent<RectTransform>();
@@ -923,6 +930,7 @@ namespace ColorCustomizer
             img4.color = textColor;
             rt5.anchorMin = Vector2.zero;
             rt5.anchorMax = Vector2.one;
+            rt4.anchoredPosition = new Vector2(-(entryButtonSideMargin + resetButtonSize.x / 2f), 0f);
             rt5.sizeDelta = new Vector2(-8f, -8f);
             rt5.SetParent(resetButtonObj.transform, false);
 

@@ -46,8 +46,8 @@ namespace ColorCustomizer
         internal static Material gunBlasterDiskMaterial1 = null;
         internal static Material gunBlasterDiskMaterial2 = null;
         internal static Material gunBlasterBallMaterial = null;
-        internal static Material gunBarMaterial = null;                 // Set by BubbleGunControllerPatches
         internal static Material gunLaserMaterial = null;
+        internal static Material gunBarMaterial = null;                 // Set by BubbleGunControllerPatches
 
         #region Player Data
 

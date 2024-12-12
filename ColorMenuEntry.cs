@@ -13,6 +13,8 @@ namespace ColorCustomizer
         public BetterButton resetButton;
         public TextMeshProUGUI settingText;
 
+        private Material colorButtonMaterial;
+
         public void Initialize(string settingKey, string settingName)
         {
             settingText.text = settingName;
@@ -22,7 +24,10 @@ namespace ColorCustomizer
                 col = CustomizerPlugin.allSettings[settingKey].Value;
                 CustomizerPlugin.allSettings[settingKey].SettingChanged += (e, args) => SetColor(CustomizerPlugin.allSettings[settingKey].Value);
             }
-            colorButton.GetComponent<Image>().color = col;
+            // Create a new instance of the material since CanvasRenderers don't have MaterialPropertyBlocks
+            colorButtonMaterial = Instantiate(colorButton.GetComponent<Image>().material);
+            colorButton.GetComponent<Image>().material = colorButtonMaterial;
+            UpdateColorButtonColor(col);
             this.settingKey = settingKey;
             this.settingName = settingName;
         }
@@ -53,6 +58,7 @@ namespace ColorCustomizer
         {
             // Sets the button color without updating the config setting
             colorButton.GetComponent<Image>().color = color;
+            colorButtonMaterial.color = color;
         }
     }
 }
