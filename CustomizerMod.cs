@@ -20,6 +20,8 @@ namespace ColorCustomizer
         public static GameObject uiPageSelectorPrototype = null;
         public static GameObject uiLeftArrowButtonPrototype = null;
         public static GameObject uiRightArrowButtonPrototype = null;
+        public static GameObject uiKeybindIconPrototype = null;
+        public static GameObject uiKeybindTextPrototype = null;
         public static GameObject colorMenuEntryPrototype = null;
 
         internal static Material playerSuitMaterial = null;             // Set by PlayerModelControllerPatches

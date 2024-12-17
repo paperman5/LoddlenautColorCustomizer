@@ -1,8 +1,10 @@
 ﻿using BepInEx.Configuration;
+using NullSave;
 using Rewired;
 using Rewired.Data.Mapping;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 
 namespace ColorCustomizer
@@ -226,6 +228,37 @@ namespace ColorCustomizer
                 }
             }
             mapEnabler.Apply();
+        }
+
+        internal static void UpdateKeybindHint(GameObject icon, GameObject text, string newAction)
+        {
+            // Separate icon and text objects
+            var iconComponent = icon.GetComponent<ReIconedTMPActionPlus>();
+            var textComponent = text.GetComponent<TextMeshProUGUI>();
+
+            if (iconComponent == null || textComponent == null)
+                return;
+
+            iconComponent.formatText = $"{{action:{newAction}}}";
+            textComponent.text = actionData[newAction].actionDescriptiveName;
+        }
+
+        internal static void UpdateKeybindHint(GameObject icon, string newAction, bool iconOnLeft)
+        {
+            // Single combined icon/text
+            var iconComponent = icon.GetComponent<ReIconedTMPActionPlus>();
+
+            if (iconComponent == null)
+                return;
+
+            if (iconOnLeft)
+            {
+                iconComponent.formatText = $"{{action:{newAction}}} {actionData[newAction].actionDescriptiveName}";
+            }
+            else
+            {
+                iconComponent.formatText = $"{actionData[newAction].actionDescriptiveName} {{action:{newAction}}}";
+            }
         }
 
         internal static void Reset()

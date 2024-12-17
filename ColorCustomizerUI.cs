@@ -1,19 +1,19 @@
-﻿using TMPro;
-using UnityEngine;
-using I2.Loc;
-using UnityEngine.UI;
-using System.Collections.Generic;
-using System;
-using System.Linq;
-using UnityEngine.EventSystems;
-using iGameAudio.FMODWrapper;
+﻿using Cinemachine;
 using DG.Tweening;
+using I2.Loc;
+using iGameAudio.FMODWrapper;
+using NullSave;
 using Rewired;
-using Cinemachine;
-using ES3Types;
-using UnityEngine.UI.Extensions.ColorPicker;
-using UnityEngine.Events;
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using UnityEngine.UI.Extensions.ColorPicker;
 
 namespace ColorCustomizer
 {
@@ -56,6 +56,7 @@ namespace ColorCustomizer
         private GameObject customizerParent;
         private Canvas customizerCanvas;
         private CanvasGroup customizerCanvasGroup;
+        private CanvasGroup keybindHintCanvasGroup;
         private Sequence menuOpenSequence = null;
         private Vector2 menuOpenSizeDelta;
         private Vector2 menuClosedSizeDelta;
@@ -285,8 +286,11 @@ namespace ColorCustomizer
             camObj.transform.SetParent(null);
 
             background.gameObject.SetActive(false);
+            keybindHintCanvasGroup.gameObject.SetActive(false);
             pickerCanvasGroup.alpha = 0f;
             pickerCanvasGroup.interactable = false;
+            keybindHintCanvasGroup.alpha = 0f;
+            keybindHintCanvasGroup.interactable = false;
 
             InputModifier.CreateAndApplyCustomMaps();
         }
@@ -340,6 +344,7 @@ namespace ColorCustomizer
             customizerCanvas.enabled = true;
             customizerCanvasGroup.alpha = 1f;
             background.gameObject.SetActive(true);
+            keybindHintCanvasGroup.gameObject.SetActive(true);
             EngineHub.UIManager.FadeAllCanvasesExcept(0f, customizerCanvasGroup, -1f, false, false);
             customizerCanvasGroup.interactable = true;
             customizerCanvasGroup.blocksRaycasts = true;
@@ -355,7 +360,7 @@ namespace ColorCustomizer
             menuOpenSequence.Append(background.DOSizeDelta(menuOpenSizeDelta, menuOpenTime, false).SetEase(menuOpenEase));
             menuOpenSequence.Join(background.DOScale(Vector3.one, menuOpenTime).SetEase(menuOpenEase));
             menuOpenSequence.Join(customizerCanvasGroup.DOFade(1f, menuOpenTime).SetEase(menuOpenEase));
-            //this.menuOpenSequence.Join(this.controlsText.DOFade(1f, this.controlsTextFadeTime).SetEase(this.controlsTextFadeEase).SetDelay(this.controlsTextFadeInDelay));
+            menuOpenSequence.Join(keybindHintCanvasGroup.DOFade(1f, menuOpenTime).SetEase(menuOpenEase));
             AudioSystem.PlaySound(audioConfig.OpenSound, default(Vector3));
             EngineHub.CentralGameMenu.DisableMapSegmentCanvasRaycasts();
             EngineHub.InputDispatcher.SwitchToStructureContext();
@@ -394,7 +399,7 @@ namespace ColorCustomizer
             menuOpenSequence.Append(background.DOSizeDelta(menuClosedSizeDelta, menuOpenTime, false).SetEase(menuOpenEase));
             menuOpenSequence.Join(background.DOScale(menuClosedScale, menuOpenTime).SetEase(menuOpenEase));
             menuOpenSequence.Join(customizerCanvasGroup.DOFade(0f, menuOpenTime).SetEase(menuOpenEase));
-            //this.menuOpenSequence.Join(this.controlsText.DOFade(0f, this.controlsTextFadeTime).SetEase(this.controlsTextFadeEase));
+            menuOpenSequence.Join(keybindHintCanvasGroup.DOFade(0f, menuOpenTime).SetEase(menuOpenEase));
             menuOpenSequence.AppendCallback(new TweenCallback(DisableMenu));
             AudioSystem.PlaySound(audioConfig.CloseSound, default(Vector3));
             EngineHub.CentralGameMenu.EnableMapSegmentCanvasRaycasts();
@@ -409,6 +414,7 @@ namespace ColorCustomizer
         private void DisableMenu()
         {
             background.gameObject.SetActive(false);
+            keybindHintCanvasGroup.gameObject.SetActive(false);
         }
 
         private void InitializeColorCustomizerUI()
@@ -487,43 +493,74 @@ namespace ColorCustomizer
             pickerCanvasGroup.alpha = 0f;
             pickerCanvasGroup.interactable = false;
 
+            // Control/Keybinding hints
+            GameObject keybindHintParent = new GameObject("ControlsHintParent");
+            RectTransform rt2 = keybindHintParent.AddComponent<RectTransform>();
+            keybindHintCanvasGroup = keybindHintParent.AddComponent<CanvasGroup>();
+            keybindHintParent.transform.SetParent(transform, false);
+            rt2.sizeDelta = canvasSize;
+            rt2.anchorMin = Vector2.zero;
+            rt2.anchorMax = Vector2.zero;
+            rt2.anchoredPosition = Vector2.zero;
+            rt2.pivot = Vector2.zero;
+            
+            // rotate controls
+            GameObject newIcon = Instantiate(CustomizerMod.uiKeybindIconPrototype);
+            newIcon.name = "Color Controls - Rotate";
+            var iconComponent = newIcon.GetComponent<ReIconedTMPActionPlus>();
+            var textComponent = newIcon.GetComponent<TextMeshProUGUI>();
+            string rotateLeft = InputModifier.actionData[KeybindingNames.rotateModelLeft].actionDescriptiveName;
+            string rotateRight = InputModifier.actionData[KeybindingNames.rotateModelRight].actionDescriptiveName;
+            iconComponent.formatText = $"{rotateLeft} {{action:{KeybindingNames.rotateModelLeft}}}     {{action:{KeybindingNames.rotateModelRight}}} {rotateRight}";
+            newIcon.transform.SetParent(keybindHintParent.transform, false);
+            RectTransform rt3 = newIcon.GetComponent<RectTransform>();
+            rt3.sizeDelta = Vector2.zero;
+            float anchorX = (menuWidth + marginLeft * 2) / canvasSize.x;
+            anchorX += (1f - anchorX) / 2;
+            rt3.anchorMin = new Vector2(anchorX, 1.0f);
+            rt3.anchorMax = new Vector2(anchorX, 1.0f);
+            rt3.anchoredPosition = new Vector2(0f, -marginTop);
+            rt3.pivot = new Vector2(0.5f, 0f);
+            textComponent.alignment = TextAlignmentOptions.Top;
+            textComponent.fontSizeMin = 32;
+            newIcon.SetActive(true);
+
+            // exit
+            newIcon = Instantiate(CustomizerMod.uiKeybindIconPrototype);
+            newIcon.name = "Color Controls - Exit Menu";
+            iconComponent = newIcon.GetComponent<ReIconedTMPActionPlus>();
+            textComponent = newIcon.GetComponent<TextMeshProUGUI>();
+            iconComponent.formatText = $"{{action:Structure Exit}} Exit";
+            newIcon.transform.SetParent(keybindHintParent.transform, false);
+            RectTransform rt4 = newIcon.GetComponent<RectTransform>();
+            rt4.sizeDelta = Vector2.zero;
+            rt4.anchorMin = new Vector2(1f, 0f);
+            rt4.anchorMax = new Vector2(1f, 0f);
+            rt4.anchoredPosition = new Vector2(-marginLeft, marginBottom);
+            rt4.pivot = Vector2.one;
+            textComponent.alignment = TextAlignmentOptions.BottomRight;
+            textComponent.fontSizeMin = 32;
+            newIcon.SetActive(true);
+
             this.background.sizeDelta = menuClosedSizeDelta;
             this.background.localScale = menuClosedScale;
         }
 
         private void LayoutPageSelector(List<ColorPageInfo> pages)
         {
-            float spacing = EngineHub.ShippingMenu.counterSpacing;
-            float padding = EngineHub.ShippingMenu.counterBackgroundPadding;
-
-            // Disable all dots and count how many should be shown
-            int numIndicators = 0;
+            // There are too many pages to show all of the dots, so only show the arrows
             for (int i = 0; i < pageIndicatorDots.Length; i++)
             {
                 pageIndicatorDots[i].enabled = false;
-                if (i < pages.Count && pages[i].canOpenPage())
-                {
-                    numIndicators++;
-                }
-            }
-
-            // Set the size according to how many pages can be opened and place the dots
-            pageSelector.sizeDelta = new Vector2(Mathf.Max(numIndicators * spacing + padding, spacing + padding), pageSelector.sizeDelta.y);
-            int currentDot = 0;
-            for (int i = 0; i < pages.Count; i++)
-            {
-                if (pages[i].canOpenPage())
-                {
-                    pageIndicatorDots[i].enabled = true;
-                    pageIndicatorTransforms[i].anchoredPosition = new Vector2(currentDot * spacing + padding, 0f);
-                    currentDot++;
-                }
             }
 
             // Place the overall page selector on the background
             pageSelector.anchorMin = new Vector2(0.5f, 0f);
             pageSelector.anchorMax = new Vector2(0.5f, 0f);
             pageSelector.anchoredPosition = new Vector2(0f, pageSelector.sizeDelta.y / 2f + pageSelectorMarginBottom);
+            // Disable dots background
+            pageSelector.GetComponent<Image>().enabled = false;
+            pageSelector.sizeDelta = new Vector2(20f, pageSelector.sizeDelta.y);
         }
 
         private void LayoutPageEntries(int pageIndex, List<ColorPageInfo> pages, bool forceUpdate = false)
@@ -642,6 +679,12 @@ namespace ColorCustomizer
                 CustomizerMod.uiRightArrowButtonPrototype = CreateUIRightArrowButtonPrototype();
             if (CustomizerMod.colorMenuEntryPrototype == null)
                 CustomizerMod.colorMenuEntryPrototype = CreateColorMenuEntryPrototype();
+            if (CustomizerMod.uiKeybindIconPrototype == null || CustomizerMod.uiKeybindTextPrototype == null)
+            {
+                var objs = CreateUIKeybindPrototypes();
+                CustomizerMod.uiKeybindIconPrototype = objs[0];
+                CustomizerMod.uiKeybindTextPrototype = objs[1];
+            }
             if (colorPickerObj == null)
             {
                 GameObject colorPickerPrefab = CustomizerPlugin.customizerAssets.LoadAsset<GameObject>("PickerRoot");
@@ -696,11 +739,13 @@ namespace ColorCustomizer
             GameObject prototype = Instantiate(existingTitle);
             prototype.name = "Title";
             TextMeshProUGUI titleText = prototype.GetComponentInChildren<TextMeshProUGUI>();
+            RectTransform rt = titleText.GetComponent<RectTransform>();
             titleText.gameObject.name = "TitleText";
             titleText.text = "";
             prototype.SetActive(false);
             prototype.transform.localScale = Vector3.one;
             prototype.transform.SetParent(null);
+            rt.sizeDelta = new Vector2(300f, rt.sizeDelta.y);
 
             CustomizerPlugin.Logger.LogInfo("Menu title prototype created");
 
@@ -943,6 +988,37 @@ namespace ColorCustomizer
             CustomizerPlugin.Logger.LogInfo("Color menu entry prototype created");
 
             return prototype;
+        }
+
+        private GameObject[] CreateUIKeybindPrototypes()
+        {
+            // Add a keybinding indication for opening the customizing UI
+            Transform textParent = GameObject.Find("/PlayerRoot/UI Manager/Inventory Canvas/Inventory Controls Text Parent/NormalInventoryControlsParent").transform;
+            GameObject iconTemplate = textParent.Find("Inventory Controls - Exit Inventory Icon").gameObject;
+            GameObject textTemplate = textParent.Find("Inventory Controls - Exit Inventory Text").gameObject;
+
+            GameObject newIcon = GameObject.Instantiate(iconTemplate);
+            newIcon.name = "Keybind Icon";
+            GameObject newText = GameObject.Instantiate(textTemplate);
+            newText.name = "Keybind Text";
+
+            // Remove I2 localization stuff
+            GameObject.Destroy(newIcon.GetComponent<ReIconedTMPI2ActionPlus>());
+            GameObject.Destroy(newText.GetComponent<Localize>());
+
+            // Add new non-I2 stuff back in
+            var iconComponent = newIcon.AddComponent<ReIconedTMPActionPlus>();
+            var textComponent = newText.GetComponent<TextMeshProUGUI>();
+
+            //iconComponent.formatText = $"{{action:{KeybindingNames.openColorMenu}}}";
+            //textComponent.text = InputModifier.actionData[KeybindingNames.openColorMenu].actionDescriptiveName;
+
+            newIcon.transform.SetParent(null, false);
+            newText.transform.SetParent(null, false);
+            newIcon.SetActive(false);
+            newText.SetActive(false);
+
+            return [newIcon, newText];
         }
 
         private void RemoveButtonPersistentListeners(Button button)

@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using I2.Loc;
 using NullSave;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 
@@ -17,33 +18,20 @@ namespace ColorCustomizer
         [HarmonyPostfix]
         public static void Start_Postfix(PlayerInventoryUI __instance)
         {
-            UpdateNormalInventoryUI(__instance);
-            UpdateStorageInventoryUI(__instance);
+            __instance.StartCoroutine(DelayedUpdateNormalInventoryUI(__instance));
+            __instance.StartCoroutine(DelayedUpdateStorageInventoryUI(__instance));
         }
 
-        public static void UpdateNormalInventoryUI(PlayerInventoryUI __instance)
+        public static IEnumerator DelayedUpdateNormalInventoryUI(PlayerInventoryUI __instance)
         {
-            // Add a keybinding indication for opening the customizing UI
-            Transform textParent = __instance.transform.parent.Find("Inventory Controls Text Parent/NormalInventoryControlsParent");
-            GameObject iconTemplate = textParent.Find("Inventory Controls - Exit Inventory Icon").gameObject;
-            GameObject textTemplate = textParent.Find("Inventory Controls - Exit Inventory Text").gameObject;
-
-            GameObject newIcon = GameObject.Instantiate(iconTemplate);
+            yield return new WaitForEndOfFrame();
+            GameObject newIcon = GameObject.Instantiate(CustomizerMod.uiKeybindIconPrototype);
+            GameObject newText = GameObject.Instantiate(CustomizerMod.uiKeybindTextPrototype);
             newIcon.name = "Inventory Controls - Customize Colors Icon";
-            GameObject newText = GameObject.Instantiate(textTemplate);
             newText.name = "Inventory Controls - Customize Colors Text";
+            InputModifier.UpdateKeybindHint(newIcon, newText, KeybindingNames.openColorMenu);
 
-            // Remove I2 localization stuff
-            GameObject.Destroy(newIcon.GetComponent<ReIconedTMPI2ActionPlus>());
-            GameObject.Destroy(newText.GetComponent<Localize>());
-
-            // Add new non-I2 stuff back in
-            var iconComponent = newIcon.AddComponent<ReIconedTMPActionPlus>();
-            var textComponent = newText.GetComponent<TextMeshProUGUI>();
-
-            iconComponent.formatText = $"{{action:{KeybindingNames.openColorMenu}}}";
-            textComponent.text = InputModifier.actionData[KeybindingNames.openColorMenu].actionDescriptiveName;
-
+            Transform textParent = __instance.transform.parent.Find("Inventory Controls Text Parent/NormalInventoryControlsParent");
             // Before adding the new stuff to the parent, shift everything else up a bit
             for (int i = 0; i < textParent.childCount; i++)
             {
@@ -53,32 +41,21 @@ namespace ColorCustomizer
 
             newIcon.transform.SetParent(textParent, false);
             newText.transform.SetParent(textParent, false);
-            normalInventoryIcon = iconComponent;
+            newIcon.SetActive(true);
+            newText.SetActive(true);
+            normalInventoryIcon = newIcon.GetComponent<ReIconedTMPActionPlus>();
         }
 
-        public static void UpdateStorageInventoryUI(PlayerInventoryUI __instance)
+        public static IEnumerator DelayedUpdateStorageInventoryUI(PlayerInventoryUI __instance)
         {
-            // Add a keybinding indication for opening the customizing UI
-            Transform textParent = __instance.transform.Find("StorageInventoryControlsParent/StorageInventoryControlsDefaultParent");
-            GameObject iconTemplate = textParent.Find("Storage Controls  - Exit Storage Icon").gameObject;
-            GameObject textTemplate = textParent.Find("Storage Controls  - Exit Storage Text").gameObject;
-
-            GameObject newIcon = GameObject.Instantiate(iconTemplate);
+            yield return new WaitForEndOfFrame();
+            GameObject newIcon = GameObject.Instantiate(CustomizerMod.uiKeybindIconPrototype);
+            GameObject newText = GameObject.Instantiate(CustomizerMod.uiKeybindTextPrototype);
             newIcon.name = "Storage Controls - Customize Colors Icon";
-            GameObject newText = GameObject.Instantiate(textTemplate);
             newText.name = "Storage Controls - Customize Colors Text";
+            InputModifier.UpdateKeybindHint(newIcon, newText, KeybindingNames.openColorMenu);
 
-            // Remove I2 localization stuff
-            GameObject.Destroy(newIcon.GetComponent<ReIconedTMPI2ActionPlus>());
-            GameObject.Destroy(newText.GetComponent<Localize>());
-
-            // Add new non-I2 stuff back in
-            var iconComponent = newIcon.AddComponent<ReIconedTMPActionPlus>();
-            var textComponent = newText.GetComponent<TextMeshProUGUI>();
-
-            iconComponent.formatText = $"{{action:{KeybindingNames.openColorMenu}}}";
-            textComponent.text = InputModifier.actionData[KeybindingNames.openColorMenu].actionDescriptiveName;
-
+            Transform textParent = __instance.transform.Find("StorageInventoryControlsParent/StorageInventoryControlsDefaultParent");
             // Before adding the new stuff to the parent, shift everything else up a bit
             for (int i = 0; i < textParent.childCount; i++)
             {
@@ -88,7 +65,9 @@ namespace ColorCustomizer
 
             newIcon.transform.SetParent(textParent, false);
             newText.transform.SetParent(textParent, false);
-            storageInventoryIcon = iconComponent;
+            newIcon.SetActive(true);
+            newText.SetActive(true);
+            storageInventoryIcon = newIcon.GetComponent<ReIconedTMPActionPlus>();
         }
 
         public static void RefreshControlIcons()
