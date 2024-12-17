@@ -594,7 +594,7 @@ namespace ColorCustomizer
                     break;
                 case PlayerKeyNames.helmetCheeks:
                     targetMaterial.color = color;
-                    // TODO: color resets when blink is used, fix this
+                    EngineHub.PlayerBlooper.defaultColor = color;
                     break;
                 case PlayerKeyNames.jetpackArrows:
                     EngineHub.PlayerMovement.arrowLitColor = color;
